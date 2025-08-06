@@ -1,0 +1,12 @@
+[package]
+name = "aoc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+utils = { version = "0.1.0", path = "../utils" }
+anyhow = { workspace = true }
+day01 = { version = "0.1.0", path = "../day01" }
+day02 = { version = "0.1.0", path = "../day02" }
+day03 = { version = "0.1.0", path = "../day03" }
+day04 = { version = "0.1.0", path = "../day04" }
