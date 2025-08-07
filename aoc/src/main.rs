@@ -14,6 +14,6 @@ macro_rules! run_days {
 fn main() -> Result<()> {
     println!("Makima my beloved!\n");
 
-    run_days!(day01, day02, day03, day04, day05);
+    run_days!(day01, day02, day03, day04, day05, day06);
     Ok(())
 }

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["aoc", "day01", "day02", "day03", "day04", "day05", "day_template", "utils"]
+members = ["aoc", "day01", "day02", "day03", "day04", "day05", "day06", "day_template", "utils"]
 
 [workspace.dependencies]
 anyhow = { version = "1.0.98" }
