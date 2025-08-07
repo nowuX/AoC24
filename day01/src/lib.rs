@@ -1,19 +1,9 @@
 use anyhow::Result;
+use utils::parse_split_once;
 
-fn parse_input(input: &str) -> (Vec<i32>, Vec<i32>) {
-    input
-        .lines()
-        .map(|line| {
-            let mut ns = line.split_whitespace();
-            let n1 = ns.next().unwrap();
-            let n2 = ns.last().unwrap();
-            (n1.parse::<i32>().unwrap(), n2.parse::<i32>().unwrap())
-        })
-        .unzip()
-}
-
-pub fn part_1(input: &str) -> Result<i32> {
-    let (mut xs, mut ys) = parse_input(input);
+pub fn part_1(input: &str) -> Result<i64> {
+    let (mut xs, mut ys): (Vec<i64>, Vec<i64>) =
+        parse_split_once::<i64>(input, "   ").into_iter().unzip();
     xs.sort();
     ys.sort();
     let sum = xs
@@ -24,10 +14,10 @@ pub fn part_1(input: &str) -> Result<i32> {
     Ok(sum)
 }
 
-pub fn part_2(input: &str) -> Result<i32> {
-    let (xs, ys) = parse_input(input);
+pub fn part_2(input: &str) -> Result<i64> {
+    let (xs, ys): (Vec<i64>, Vec<i64>) = parse_split_once::<i64>(input, "   ").into_iter().unzip();
     let sum = xs.iter().fold(0, |acc, x| {
-        acc + (x * ys.iter().filter(|y| *y == x).count() as i32)
+        acc + (x * ys.iter().filter(|y| *y == x).count() as i64)
     });
 
     Ok(sum)

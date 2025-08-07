@@ -1,4 +1,5 @@
 use anyhow::Result;
+use utils::{parse_split, parse_split_once};
 
 fn get_rules(rules: &[(usize, usize)], e: &usize) -> (Vec<usize>, Vec<usize>) {
     let mut pre = vec![];
@@ -23,19 +24,14 @@ fn check_order(rules: &[(usize, usize)], update: &[usize]) -> bool {
 }
 
 fn parse_input(input: &str) -> (Vec<(usize, usize)>, Vec<Vec<usize>>) {
-    let (rules, updates) = input.split_once("\n\n").unwrap();
-    let rules = rules
-        .lines()
-        .map(|l| {
-            let (f, s) = l.split_once("|").unwrap();
-            (f.parse().unwrap(), s.parse().unwrap())
+    input
+        .split_once("\n\n")
+        .map(|(rules, updates)| {
+            let rules = parse_split_once(rules, "|");
+            let updates = updates.lines().map(|line| parse_split(line, ",")).collect();
+            (rules, updates)
         })
-        .collect();
-    let updates = updates
-        .lines()
-        .map(|l| l.split(",").map(|w| w.parse().unwrap()).collect())
-        .collect();
-    (rules, updates)
+        .unwrap()
 }
 
 pub fn part_1(input: &str) -> Result<usize> {
@@ -58,15 +54,10 @@ pub fn part_2(input: &str) -> Result<usize> {
         .into_iter()
         .filter(|updates| !check_order(&rules, updates))
         .map(|mut update| {
-            loop {
-                let i = match update.iter().enumerate().position(|(k, v)| {
-                    let (pre_rules, _) = get_rules(&rules, v);
-                    update[k + 1..].iter().any(|x| pre_rules.contains(x))
-                }) {
-                    Some(i) => i,
-                    None => break,
-                };
-
+            while let Some(i) = update.iter().enumerate().position(|(k, v)| {
+                let (pre_rules, _) = get_rules(&rules, v);
+                update[k + 1..].iter().any(|x| pre_rules.contains(x))
+            }) {
                 let (pre_rules, _) = get_rules(&rules, &update[i]);
                 let target = update[i + 1..]
                     .iter()

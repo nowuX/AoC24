@@ -1,37 +1,21 @@
 use anyhow::Result;
+use utils::parse_split;
 
-fn is_sorted(line: &[i32]) -> bool {
+fn is_sorted(line: &[i64]) -> bool {
     line.is_sorted_by(|a, b| a < b) || line.is_sorted_by(|a, b| a > b)
 }
 
-fn hasnt_bad_level(line: &[i32]) -> bool {
+fn hasnt_bad_level(line: &[i64]) -> bool {
     line.windows(2).all(|pair| {
         let diff = (pair[0] - pair[1]).abs();
         (1..=3).contains(&diff)
     })
 }
-fn is_safe(line: &[i32]) -> bool {
+fn is_safe(line: &[i64]) -> bool {
     is_sorted(line) && hasnt_bad_level(line)
 }
 
-pub fn part_1(input: &str) -> Result<usize> {
-    let reports = input
-        .lines()
-        .map(|line| {
-            line.split_whitespace()
-                .map(|c| c.parse::<i32>().unwrap())
-                .collect::<Vec<_>>()
-        })
-        .filter(|line| {
-            let sorted = is_sorted(line);
-            let no_bad_level = hasnt_bad_level(line);
-            sorted & no_bad_level
-        })
-        .count();
-    Ok(reports)
-}
-
-fn is_safe_without_n(line: &[i32]) -> bool {
+fn is_safe_without_n(line: &[i64]) -> bool {
     if is_safe(line) {
         return true;
     }
@@ -42,24 +26,33 @@ fn is_safe_without_n(line: &[i32]) -> bool {
     })
 }
 
+pub fn part_1(input: &str) -> Result<usize> {
+    let reports = input
+        .lines()
+        .map(|line| parse_split(line, " "))
+        .filter(|line| {
+            let sorted = is_sorted(line);
+            let no_bad_level = hasnt_bad_level(line);
+            sorted & no_bad_level
+        })
+        .count();
+    Ok(reports)
+}
+
 pub fn part_2(input: &str) -> Result<usize> {
     let reports = input
         .lines()
-        .map(|line| {
-            line.split_whitespace()
-                .map(|c| c.parse::<i32>().unwrap())
-                .collect::<Vec<_>>()
-        })
+        .map(|line| parse_split(line, " "))
         .filter(|line| is_safe_without_n(line))
         .count();
     Ok(reports)
 }
 
 /*
-fn check_condition<F, F2>(line: &[i32], condition_1: F, condition_2: F2) -> bool
+fn check_condition<F, F2>(line: &[i64], condition_1: F, condition_2: F2) -> bool
 where
-    F: Fn(&[i32]) -> bool,
-    F2: Fn(&[i32]) -> bool,
+    F: Fn(&[i64]) -> bool,
+    F2: Fn(&[i64]) -> bool,
 {
     let mut used = false;
     let mut line = line.into_iter().cloned().collect::<Vec<_>>();
