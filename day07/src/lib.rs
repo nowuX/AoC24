@@ -2,28 +2,28 @@
 use anyhow::Result;
 use utils::parse_split;
 
-fn op_combinations(n: usize) -> Vec<Vec<bool>> {
+fn op_combinations(n: usize) -> impl Iterator<Item = Vec<bool>> {
     let total = 1 << n;
-    (0..total)
-        .map(|i| (0..n).map(|j| (i >> (n - 1 - j)) & 1 == 1).collect())
-        .collect()
+    (0..total).map(move |i| (0..n).map(move |j| (i >> (n - 1 - j)) & 1 == 1).collect())
 }
 
-fn eval_expr(numbers: &[usize], operators: &[bool]) -> usize {
+fn eval_expr(numbers: &[usize], operators: &[bool], target: &usize) -> bool {
     let mut result = numbers[0];
     for (i, op) in operators.iter().enumerate() {
+        // lil opt
+        if result > *target {
+            return false;
+        }
         match op {
             true => result += numbers[i + 1],
             false => result *= numbers[i + 1],
         }
     }
-    result
+    result == *target
 }
 
 fn eval_ecu(numbers: &[usize], target: &usize) -> Option<Vec<bool>> {
-    op_combinations(numbers.len() - 1)
-        .into_iter()
-        .find(|ops| eval_expr(numbers, ops) == *target)
+    op_combinations(numbers.len() - 1).find(|ops| eval_expr(numbers, ops, target))
 }
 
 pub fn part_1(input: &str) -> Result<usize> {
