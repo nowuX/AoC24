@@ -14,11 +14,17 @@ mod tests {
     use crate::{part_1, part_2};
     use anyhow::Result;
 
+    const INPUT: &str = "";
+
     #[test]
-    fn test_day() -> Result<()> {
-        let input = "";
-        assert_eq!(part_1(input)?, 0);
-        assert_eq!(part_2(input)?, 0);
+    fn test_day_part_1() -> Result<()> {
+        assert_eq!(part_1(INPUT)?, 0);
+        Ok(())
+    }
+
+    #[test]
+    fn test_day_part_2() -> Result<()> {
+        assert_eq!(part_2(INPUT)?, 0);
         Ok(())
     }
 }
