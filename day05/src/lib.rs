@@ -27,8 +27,11 @@ fn parse_input(input: &str) -> (Vec<(usize, usize)>, Vec<Vec<usize>>) {
     input
         .split_once("\n\n")
         .map(|(rules, updates)| {
-            let rules = parse_split_once(rules, "|");
-            let updates = updates.lines().map(|line| parse_split(line, ",")).collect();
+            let rules: Vec<(usize, usize)> = parse_split_once(rules, "|").collect();
+            let updates: Vec<Vec<usize>> = updates
+                .lines()
+                .map(|line| parse_split(line, ",").collect())
+                .collect();
             (rules, updates)
         })
         .unwrap()

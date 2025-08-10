@@ -1,29 +1,31 @@
 use anyhow::Result;
 use utils::parse_split;
 
-fn op_combinations(n: u32, base: usize) -> impl Iterator<Item = Vec<usize>> {
+fn op_combinations(n: u32, base: usize) -> impl Iterator<Item = impl Iterator<Item = usize>> {
     let total = base.pow(n);
     (0..total).map(move |i| {
-        (0..n)
-            .map(move |j| {
-                if base == 2 {
-                    (i >> (n - 1 - j)) & 1
-                } else {
-                    (i / base.pow(n - 1 - j)) % base
-                }
-            })
-            .collect()
+        (0..n).map(move |j| {
+            if base == 2 {
+                (i >> (n - 1 - j)) & 1
+            } else {
+                (i / base.pow(n - 1 - j)) % base
+            }
+        })
     })
 }
 
-fn eval_rec(ns: &[usize], ops: &[usize]) -> usize {
+fn eval_rec<I>(ns: &[usize], ops: I, target: usize) -> bool
+where
+    I: Iterator<Item = usize>,
+{
     if ns.len() == 1 {
-        return ns[0];
+        return ns[0] == target;
     }
 
     let n1 = ns[0];
     let n2 = ns[1];
-    let op = &ops[0];
+    let mut ops_iter = ops;
+    let op = ops_iter.next().unwrap();
 
     let buffer = match op {
         0 => n1 + n2,
@@ -39,31 +41,37 @@ fn eval_rec(ns: &[usize], ops: &[usize]) -> usize {
         }
         _ => unreachable!(),
     };
+    if buffer > target {
+        return false;
+    }
+
+    if ns.len() == 2 {
+        return buffer == target;
+    }
 
     let mut next_ns = [0usize; 12];
     next_ns[0] = buffer;
     next_ns[1..(ns.len() - 1)].copy_from_slice(&ns[2..]);
 
-    eval_rec(&next_ns[..(ns.len() - 1)], &ops[1..])
+    eval_rec(&next_ns[..(ns.len() - 1)], ops_iter, target)
 }
 
 fn solution(input: &str, base: usize) -> usize {
     input
         .lines()
-        .map(|l| {
-            l.split_once(": ")
-                .map(|(n, ns)| {
-                    let n: usize = n.parse().unwrap();
-                    let ns: Vec<usize> = parse_split(ns, " ");
-                    (n, ns)
-                })
-                .unwrap()
+        .filter_map(|l| {
+            let (target, numbers) = l.split_once(": ")?;
+            let target: usize = target.parse().ok()?;
+            let numbers: Vec<usize> = parse_split(numbers, " ").collect();
+
+            if op_combinations((numbers.len() - 1) as u32, base)
+                .any(|ops| eval_rec(&numbers, ops, target))
+            {
+                Some(target)
+            } else {
+                None
+            }
         })
-        .filter(|(target, numbers)| {
-            op_combinations((numbers.len() - 1) as u32, base)
-                .any(|ops| eval_rec(numbers, &ops) == *target)
-        })
-        .map(|(target, _)| target)
         .sum()
 }
 

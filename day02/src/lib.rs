@@ -29,7 +29,7 @@ fn is_safe_without_n(line: &[i64]) -> bool {
 pub fn part_1(input: &str) -> Result<usize> {
     let reports = input
         .lines()
-        .map(|line| parse_split(line, " "))
+        .map(|line| parse_split(line, " ").collect::<Vec<_>>())
         .filter(|line| is_sorted(line) && hasnt_bad_level(line))
         .count();
     Ok(reports)
@@ -38,7 +38,7 @@ pub fn part_1(input: &str) -> Result<usize> {
 pub fn part_2(input: &str) -> Result<usize> {
     let reports = input
         .lines()
-        .map(|line| parse_split(line, " "))
+        .map(|line| parse_split(line, " ").collect::<Vec<_>>())
         .filter(|line| is_safe_without_n(line))
         .count();
     Ok(reports)

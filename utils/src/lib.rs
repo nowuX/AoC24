@@ -8,28 +8,24 @@ pub fn load_input(day_dir: &str) -> Result<String> {
 }
 
 /// Parses multi-line input where each line contains two values separated by a delimiter.
-pub fn parse_split_once<T>(data: &str, delimeter: &str) -> Vec<(T, T)>
+pub fn parse_split_once<T>(data: &str, delimeter: &str) -> impl Iterator<Item = (T, T)>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
 {
-    data.lines()
-        .map(|line| {
-            let (x, y) = line.split_once(delimeter).unwrap();
-            (x.parse::<T>().unwrap(), y.parse::<T>().unwrap())
-        })
-        .collect()
+    data.lines().map(move |line| {
+        let (x, y) = line.split_once(delimeter).unwrap();
+        (x.parse::<T>().unwrap(), y.parse::<T>().unwrap())
+    })
 }
 
 /// Parses a string by splitting it on a delimiter and converting each part to type `T` and collects into a `Vec<T>`.
-pub fn parse_split<T>(data: &str, delimeter: &str) -> Vec<T>
+pub fn parse_split<T>(data: &str, delimeter: &str) -> impl Iterator<Item = T>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
 {
-    data.split(delimeter)
-        .map(|c| c.parse::<T>().unwrap())
-        .collect()
+    data.split(delimeter).map(|c| c.parse::<T>().unwrap())
 }
 
 #[cfg(test)]
@@ -39,14 +35,14 @@ mod tests {
     #[test]
     fn test_parse_split_once_integers() {
         let input = "10   20\n30   40";
-        let result: Vec<(i32, i32)> = parse_split_once(input, "   ");
+        let result: Vec<(i32, i32)> = parse_split_once(input, "   ").collect();
         assert_eq!(result, vec![(10, 20), (30, 40)]);
     }
 
     #[test]
     fn test_parse_split_once_strings() {
         let input = "hello,world\nfoo,bar";
-        let result: Vec<(String, String)> = parse_split_once(input, ",");
+        let result: Vec<(String, String)> = parse_split_once(input, ",").collect();
         assert_eq!(
             result,
             vec![
@@ -59,14 +55,14 @@ mod tests {
     #[test]
     fn test_parse_split_integers() {
         let input = "1,2,3,4,5";
-        let result: Vec<i32> = parse_split(input, ",");
+        let result: Vec<i32> = parse_split(input, ",").collect();
         assert_eq!(result, vec![1, 2, 3, 4, 5]);
     }
 
     #[test]
     fn test_parse_split_floats() {
         let input = "1.5 2.7 9.1";
-        let result: Vec<f64> = parse_split(input, " ");
+        let result: Vec<f64> = parse_split(input, " ").collect();
         assert_eq!(result, vec![1.5, 2.7, 9.1]);
     }
 
@@ -74,13 +70,13 @@ mod tests {
     #[should_panic]
     fn test_parse_split_once_missing_delimiter() {
         let input = "10 20"; // Missing the "   " delimiter
-        let _: Vec<(i32, i32)> = parse_split_once(input, "   ");
+        let _: Vec<(i32, i32)> = parse_split_once(input, "   ").collect();
     }
 
     #[test]
     #[should_panic]
     fn test_parse_split_invalid_number() {
         let input = "1,abc,3";
-        let _: Vec<i32> = parse_split(input, ",");
+        let _: Vec<i32> = parse_split(input, ",").collect();
     }
 }
