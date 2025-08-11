@@ -2,8 +2,7 @@ use anyhow::Result;
 use utils::parse_split_once;
 
 pub fn part_1(input: &str) -> Result<i64> {
-    let (mut xs, mut ys): (Vec<i64>, Vec<i64>) =
-        parse_split_once::<i64>(input, "   ").into_iter().unzip();
+    let (mut xs, mut ys): (Vec<i64>, Vec<i64>) = parse_split_once::<i64>(input, "   ").unzip();
     xs.sort();
     ys.sort();
     let sum = xs
@@ -15,7 +14,7 @@ pub fn part_1(input: &str) -> Result<i64> {
 }
 
 pub fn part_2(input: &str) -> Result<i64> {
-    let (xs, ys): (Vec<i64>, Vec<i64>) = parse_split_once::<i64>(input, "   ").into_iter().unzip();
+    let (xs, ys): (Vec<i64>, Vec<i64>) = parse_split_once::<i64>(input, "   ").unzip();
     let sum = xs.iter().fold(0, |acc, x| {
         acc + (x * ys.iter().filter(|y| *y == x).count() as i64)
     });

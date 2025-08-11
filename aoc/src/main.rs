@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use anyhow::Result;
 
 macro_rules! run_days {
@@ -5,7 +7,15 @@ macro_rules! run_days {
         $(
             {
                 let input = utils::load_input(stringify!($day))?;
-                println!("=> {}\n   Part 1: {:?}\n   Part 2: {:?}\n", stringify!($day).to_uppercase(), $day::part_1(&input)?, $day::part_2(&input)?);
+                let start = Instant::now();
+                let part_1 = $day::part_1(&input)?;
+                let duration = start.elapsed();
+                println!("=> {}\n   Part 1: {:?}, {:?}", stringify!($day).to_uppercase(), part_1, duration);
+                let start = Instant::now();
+                let part_2 = $day::part_2(&input)?;
+                let duration = start.elapsed();
+                println!("   Part 2: {:?}, {:?}\n", part_2, duration)
+
             }
         )*
     };
@@ -13,7 +23,6 @@ macro_rules! run_days {
 
 fn main() -> Result<()> {
     println!("Makima my beloved!\n");
-
-    run_days!(day07);
+    run_days!(day01, day02, day03, day04, day05, day06, day07);
     Ok(())
 }

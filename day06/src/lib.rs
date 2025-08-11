@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-
 use anyhow::Result;
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 enum Direction {
@@ -28,147 +27,156 @@ impl Direction {
             Direction::Left => Direction::Up,
         }
     }
-
-    fn to_char(&self) -> char {
-        match self {
-            Direction::Up => '^',
-            Direction::Down => 'v',
-            Direction::Right => '>',
-            Direction::Left => '<',
-        }
-    }
-
-    fn get_next_coords(&self, coords: (usize, usize)) -> Option<(usize, usize)> {
-        let (x, y) = coords;
-        match self {
-            Direction::Up => y.checked_sub(1).map(|new_y| (x, new_y)),
-            Direction::Down => Some((x, y + 1)),
-            Direction::Right => Some((x + 1, y)),
-            Direction::Left => x.checked_sub(1).map(|new_x| (new_x, y)),
-        }
-    }
 }
 
-fn get_coords(map: &[Vec<char>]) -> Option<(usize, usize)> {
-    map.iter().enumerate().find_map(|(row_idx, row)| {
-        row.iter()
-            .position(|&ch| matches!(ch, '^' | '>' | '<' | 'v'))
-            .map(|col_idx| (col_idx, row_idx))
-    })
+fn get_coords(map: &[Vec<u8>]) -> (usize, usize) {
+    map.iter()
+        .enumerate()
+        .find_map(|(y, row)| row.iter().position(|&c| c == b'^').map(|x| (x, y)))
+        .unwrap()
 }
 
-fn set_pos(map: &mut [Vec<char>], coords: (usize, usize), c: char) {
-    let (x, y) = coords;
-    if let Some(row) = map.get_mut(y) {
-        if let Some(current_char) = row.get_mut(x) {
-            *current_char = c;
-        }
-    }
-}
+fn simulate_guard(map: &[Vec<u8>], obstacle_pos: (usize, usize)) -> bool {
+    let (ox, oy) = obstacle_pos;
 
-// TODO needs a heavy optimization this thing O(n^3)
-fn simulate_guard(map: &[Vec<char>], obstacle_pos: Option<(usize, usize)>) -> bool {
-    let mut map_copy = map.to_vec();
-
-    if let Some((ox, oy)) = obstacle_pos {
-        if let Some(row) = map_copy.get_mut(oy) {
-            if let Some(cell) = row.get_mut(ox) {
-                if *cell != '#' && !matches!(*cell, '^' | 'v' | '>' | '<') {
-                    *cell = '#';
-                } else {
-                    return false;
-                }
-            }
-        }
+    let cell = map[oy][ox];
+    if cell == b'#' || cell == b'^' {
+        return false;
     }
 
     let mut visited_states = HashSet::new();
-    let mut coords = get_coords(&map_copy).unwrap();
+    let mut coords = get_coords(map);
     let mut di = Direction::new();
 
     loop {
-        let state = (coords, di.clone());
-        if visited_states.contains(&state) {
+        let state = (coords.0, coords.1, di.clone()); // Assume Direction has as_u8()
+
+        if !visited_states.insert(state) {
             return true; // Loop detected
         }
-        visited_states.insert(state);
 
-        match di.get_next_coords(coords) {
-            Some(next_coords) => {
-                let (next_x, next_y) = next_coords;
-                match map_copy.get(next_y).and_then(|row| row.get(next_x)) {
-                    Some('#') => {
-                        di.next();
-                    }
-                    Some(_) => {
-                        coords = next_coords;
-                    }
-                    None => {
-                        return false;
-                    }
-                }
-            }
-            None => {
-                return false;
-            }
+        let (x, y) = coords;
+        let (next_x, next_y) = match di {
+            Direction::Up => (x, y.wrapping_sub(1)),
+            Direction::Down => (x, y + 1),
+            Direction::Right => (x + 1, y),
+            Direction::Left => (x.wrapping_sub(1), y),
+        };
+
+        if next_y >= map.len() || next_x >= map[0].len() {
+            return false;
+        }
+
+        if next_y >= map.len() || next_x >= map[0].len() {
+            return false;
+        }
+
+        let is_wall = (next_x, next_y) == obstacle_pos || map[next_y][next_x] == b'#';
+
+        if is_wall {
+            di.next();
+        } else {
+            coords = (next_x, next_y);
         }
     }
+}
+
+#[inline]
+fn mark_vertical_range(map: &mut [Vec<u8>], x: usize, start_y: usize, end_y: usize) {
+    for y in map.iter_mut().take(end_y + 1).skip(start_y) {
+        y[x] = b'X';
+    }
+}
+
+#[inline]
+fn mark_horizontal_range(map: &mut [Vec<u8>], y: usize, start_x: usize, end_x: usize) {
+    for x in start_x..=end_x {
+        map[y][x] = b'X';
+    }
+}
+
+#[inline]
+fn count_x_bytes(row: &[u8]) -> usize {
+    row.iter().filter(|b| **b == b'X').count()
 }
 
 pub fn part_1(input: &str) -> Result<usize> {
-    let mut map: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+    let mut map: Vec<Vec<u8>> = input.lines().map(|l| l.bytes().collect()).collect();
     let mut di = Direction::new();
+    let (mut x, mut y) = get_coords(&map);
 
     loop {
-        let coords = get_coords(&map).unwrap();
-        let next_coords = match di.get_next_coords(coords) {
-            Some(v) => v,
-            None => {
-                set_pos(&mut map, coords, 'X');
-                break;
-            }
-        };
-        let (next_x, next_y) = next_coords;
-        match map.get_mut(next_y).and_then(|row| row.get_mut(next_x)) {
-            Some(target_char) => match target_char {
-                '#' => {
-                    set_pos(&mut map, coords, di.get_next().to_char());
-                    di.next();
+        match di {
+            Direction::Up => match (0..=y).rev().find(|ty| map[*ty][x] == b'#') {
+                Some(pos) => {
+                    mark_vertical_range(&mut map, x, pos + 1, y);
+                    y = pos + 1;
                 }
-                _ => {
-                    *target_char = di.to_char();
-                    set_pos(&mut map, coords, 'X');
+                None => {
+                    mark_vertical_range(&mut map, x, 0, y);
+                    break;
                 }
             },
-            None => {
-                set_pos(&mut map, coords, 'X');
-                break;
+            Direction::Down => {
+                let len = map.len();
+                match ((y + 1)..map.len()).find(|ty| map[*ty][x] == b'#') {
+                    Some(wall_y) => {
+                        mark_vertical_range(&mut map, x, y, wall_y - 1);
+                        y = wall_y - 1;
+                    }
+                    None => {
+                        mark_vertical_range(&mut map, x, y, len - 1);
+                        break;
+                    }
+                }
             }
+            Direction::Right => {
+                let len = map[y].len();
+                match ((x + 1)..map[y].len()).find(|tx| map[y][*tx] == b'#') {
+                    Some(wall_x) => {
+                        mark_horizontal_range(&mut map, y, x, wall_x - 1);
+                        x = wall_x - 1;
+                    }
+                    None => {
+                        mark_horizontal_range(&mut map, y, x, len - 1);
+                        break;
+                    }
+                }
+            }
+            Direction::Left => match (0..x).rev().find(|tx| map[y][*tx] == b'#') {
+                Some(wall_x) => {
+                    mark_horizontal_range(&mut map, y, wall_x + 1, x);
+                    x = wall_x + 1;
+                }
+                None => {
+                    mark_horizontal_range(&mut map, y, 0, x);
+                    break;
+                }
+            },
         }
+        di.next();
     }
-    let guard_positions = map
-        .into_iter()
-        .map(|row| row.into_iter().filter(|c| *c == 'X').count())
-        .sum();
-    Ok(guard_positions)
+
+    let result = map.iter().map(|row| count_x_bytes(row)).sum();
+
+    Ok(result)
 }
 
 pub fn part_2(input: &str) -> Result<usize> {
-    let original_map: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
-    let start_coords = get_coords(&original_map).unwrap();
-    let mut loop_positions = 0;
+    let original_map: Vec<Vec<u8>> = input.lines().map(|line| line.bytes().collect()).collect();
+    let start_coords = get_coords(&original_map);
+    let height = original_map.len();
+    let width = original_map[0].len();
 
-    for y in 0..original_map.len() {
-        for x in 0..original_map[0].len() {
-            if (x, y) == start_coords || original_map[y][x] == '#' {
-                continue;
-            }
+    let positions: Vec<(usize, usize)> = (0..height)
+        .flat_map(|y| (0..width).map(move |x| (x, y)))
+        .filter(|&pos| pos != start_coords && original_map[pos.1][pos.0] != b'#')
+        .collect();
 
-            if simulate_guard(&original_map, Some((x, y))) {
-                loop_positions += 1;
-            }
-        }
-    }
+    let loop_positions = positions
+        .iter()
+        .filter(|&&pos| simulate_guard(&original_map, pos))
+        .count();
 
     Ok(loop_positions)
 }
