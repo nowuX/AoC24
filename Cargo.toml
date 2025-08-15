@@ -1,0 +1,11 @@
+[package]
+name = "aoc_24"
+version = "0.1.0"
+edition = "2024"
+default-run = "aoc_24"
+
+[dependencies]
+anyhow = { version = "1.0.99" }
+itertools = { version = "0.14.0" }
+hashbrown = { version = "0.15.5", features = ["rayon"] }
+rayon = { version = "1.11.0" }
