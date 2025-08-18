@@ -28,18 +28,17 @@ fn part_1(data: &str) -> usize {
         }
     }
 
-    let y_max = data.lines().count() - 1;
-    let x_max = data.lines().next().unwrap().len() - 1;
+    let y_max = (data.lines().count() - 1) as isize;
+    let x_max = (data.lines().next().unwrap().len() - 1) as isize;
 
-    for key in hm.keys() {
-        let (key, values) = hm.get_key_value(key).unwrap();
+    for (key, values) in hm.iter() {
         for value in values {
             for comp in values {
                 if value != comp {
                     let step = (value.0 - comp.0, value.1 - comp.1);
                     let new_point = (value.0 + step.0, value.1 + step.1);
                     let (y, x) = new_point;
-                    if y >= 0 && x >= 0 && y <= y_max as isize && x <= x_max as isize {
+                    if y >= 0 && x >= 0 && y <= y_max && x <= x_max {
                         antinodes_positions.insert((y, x));
                     }
                 }
