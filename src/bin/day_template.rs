@@ -20,7 +20,7 @@ fn part_2(data: &str) -> usize {
     0
 }
 
-// fn part_1_and_2(data: &str) -> (usize, usize) { let sol = { let p1 = 0; let p2 = 0; (p1, p2) }; sol }
+// fn part_1_and_2(data: &str) -> (usize, usize) { let p1 = 0; let p2 = 0; (p1, p2) }
 
 #[cfg(test)]
 mod tests {
