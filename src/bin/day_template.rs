@@ -1,12 +1,12 @@
 #![expect(unused)]
 
-const DATA: &'static str = include_str!("../../input/08.in");
+const DATA: &str = include_str!("../../input/01.in");
 
 fn main() {
     // let (p1, p2) = part_1_and_2(&DATA);
     let now = std::time::Instant::now();
-    let p1 = part_1(&DATA);
-    let p2 = part_2(&DATA);
+    let p1 = part_1(DATA);
+    let p2 = part_2(DATA);
     let elapsed = now.elapsed();
     println!("Part 1: {p1:?}\nPart 2: {p2:?}\nTime: {elapsed:?}");
 }
