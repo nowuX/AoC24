@@ -82,6 +82,6 @@ mod tests {
     #[test]
     fn test_part_2() {
         let p2 = part_2(INPUT);
-        assert_eq!(p2, 0);
+        assert_eq!(p2, 34);
     }
 }
