@@ -1,32 +1,34 @@
-use aoc_24::load_input;
 use hashbrown::{HashMap, HashSet};
 
+const DATA: &'static str = include_str!("../../input/08.in");
+
 fn main() {
-    let data = load_input("08").unwrap();
-    let (part_1, part_2) = part_1_and_2(&data);
-    println!("Part 1: {part_1}");
-    println!("Part 2: {part_2}");
+    let now = std::time::Instant::now();
+    let (p1, p2) = part_1_and_2(&DATA);
+    let elapsed = now.elapsed();
+    println!("Part 1: {p1:?}\nPart 2: {p2:?}\nTime: {elapsed:?}");
 }
 
 fn part_1_and_2(data: &str) -> (usize, usize) {
-    let mut p1 = HashSet::new();
-    let mut p2 = HashSet::new();
-
-    let mut hm: HashMap<char, Vec<(isize, isize)>> = HashMap::new();
-    for (y, line) in data.lines().enumerate() {
-        for (x, ch) in line.chars().enumerate() {
-            if ch != '.' {
-                hm.entry(ch)
-                    .or_insert_with(Vec::new)
-                    .push((y as isize, x as isize));
+    let grid = data.lines().map(|l| l.as_bytes()).collect::<Vec<_>>();
+    let mut nodes: HashMap<_, Vec<_>> = HashMap::new();
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            if grid[i][j] != b'.' {
+                nodes
+                    .entry(grid[i][j])
+                    .or_default()
+                    .push((i as isize, j as isize));
             }
         }
     }
 
-    let y_max = (data.lines().count() - 1) as isize;
-    let x_max = (data.lines().next().unwrap().len() - 1) as isize;
+    let y_max = grid.len() as isize;
+    let x_max = grid[0].len() as isize;
 
-    for (_, values) in hm.iter() {
+    let mut p1 = HashSet::new();
+    let mut p2 = HashSet::new();
+    for values in nodes.values() {
         for value in values {
             for comp in values {
                 if value != comp {
@@ -60,7 +62,7 @@ fn add_points(point_a: &Point, point_b: &Point) -> Point {
 
 #[inline]
 fn in_bounds(point: Point, y_max: isize, x_max: isize) -> bool {
-    point.0 >= 0 && point.1 >= 0 && point.0 <= y_max && point.1 <= x_max
+    point.0 >= 0 && point.1 >= 0 && point.0 < y_max && point.1 < x_max
 }
 
 #[cfg(test)]

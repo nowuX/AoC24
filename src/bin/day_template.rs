@@ -1,13 +1,14 @@
 #![expect(unused)]
-use aoc_24::load_input;
+
+const DATA: &'static str = include_str!("../../input/08.in");
 
 fn main() {
-    let data = load_input("<day>").unwrap();
-    // let (part_1, part_2) = part_1_and_2(&data);
-    let part_1 = part_1(&data);
-    let part_2 = part_2(&data);
-    println!("Part 1: {part_1}");
-    println!("Part 2: {part_2}");
+    // let (p1, p2) = part_1_and_2(&DATA);
+    let now = std::time::Instant::now();
+    let p1 = part_1(&DATA);
+    let p2 = part_2(&DATA);
+    let elapsed = now.elapsed();
+    println!("Part 1: {p1:?}\nPart 2: {p2:?}\nTime: {elapsed:?}");
 }
 
 fn part_1(data: &str) -> usize {

@@ -1,13 +1,15 @@
-use anyhow::Result;
-use aoc_24::{load_input, parse_split_once};
+use aoc_24::parse_split_once;
 use itertools::Itertools;
 
-fn main() -> Result<()> {
-    let data = load_input("01")?;
-    let (part_1, part_2) = part_1_and_2(&data);
-    println!("Part 1: {part_1}");
-    println!("Part 2: {part_2}");
-    Ok(())
+const DATA: &'static str = include_str!("../../input/01.in");
+
+fn main() {
+    let now = std::time::Instant::now();
+    let (p1, p2) = part_1_and_2(&DATA);
+    let elapsed = now.elapsed();
+    println!("Part 1: {p1}");
+    println!("Part 2: {p2}");
+    println!("Time: {elapsed:?}");
 }
 
 fn part_1_and_2(data: &str) -> (u64, u64) {
@@ -16,6 +18,7 @@ fn part_1_and_2(data: &str) -> (u64, u64) {
     let p2 = xs.iter().fold(0, |acc, x| {
         acc + (x * ys.iter().filter(|&y| y == x).count() as u64)
     });
+
     let p1 = xs
         .into_iter()
         .sorted()

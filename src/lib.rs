@@ -1,12 +1,4 @@
-use std::{fmt::Debug, fs, str::FromStr};
-
-use anyhow::{Context, Result};
-
-pub fn load_input(day: &str) -> Result<String> {
-    let data =
-        fs::read_to_string(format!("input/{day}.in")).context("⚠️\tCan not read the input file")?;
-    Ok(data)
-}
+use std::{fmt::Debug, str::FromStr};
 
 pub fn parse_split<T>(data: &str, delimiter: &str) -> impl Iterator<Item = T>
 where
