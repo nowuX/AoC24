@@ -1,15 +1,11 @@
-#![expect(unused)]
-use anyhow::Result;
 use aoc_24::load_input;
 use hashbrown::{HashMap, HashSet};
-use rayon::prelude::*;
 
-fn main() -> Result<()> {
-    let data = load_input("08")?;
+fn main() {
+    let data = load_input("08").unwrap();
     let (part_1, part_2) = part_1_and_2(&data);
     println!("Part 1: {part_1}");
     println!("Part 2: {part_2}");
-    Ok(())
 }
 
 fn part_1_and_2(data: &str) -> (usize, usize) {
@@ -30,7 +26,7 @@ fn part_1_and_2(data: &str) -> (usize, usize) {
     let y_max = (data.lines().count() - 1) as isize;
     let x_max = (data.lines().next().unwrap().len() - 1) as isize;
 
-    for (key, values) in hm.iter() {
+    for (_, values) in hm.iter() {
         for value in values {
             for comp in values {
                 if value != comp {
