@@ -17,12 +17,12 @@ fn main() -> Result<()> {
         .parse()
         .context(format!("Invalid day '{}'", args[1]))?;
 
-    let bin_name = format!("day{:02}", day);
+    let bin_name = format!("day{day:02}");
     println!("🎄 Running Advent of Code - Day {day} 🎄");
     println!("{}", "=".repeat(35));
 
     let output = Command::new("cargo")
-        .args(&["run", "--bin", &bin_name])
+        .args(["run", "--bin", &bin_name])
         .output()
         .context("Error running day")?;
 

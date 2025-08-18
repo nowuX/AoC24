@@ -1,15 +1,13 @@
 #![expect(unused)]
-use anyhow::Result;
-use aoc_24::{load_input, parse_split_once};
+use aoc_24::load_input;
 
-fn main() -> Result<()> {
-    let data = load_input("<day>")?;
+fn main() {
+    let data = load_input("<day>").unwrap();
     // let (part_1, part_2) = part_1_and_2(&data);
     let part_1 = part_1(&data);
     let part_2 = part_2(&data);
     println!("Part 1: {part_1}");
     println!("Part 2: {part_2}");
-    Ok(())
 }
 
 fn part_1(data: &str) -> usize {
@@ -20,7 +18,7 @@ fn part_2(data: &str) -> usize {
     0
 }
 
-// fn part_1_and_2(data: &str) -> (usize, usize) { let sol = { let p1 = 0; let p2 = 0; (p1, p2) }; sol }
+// fn part_1_and_2(data: &str) -> (usize, usize) { let p1 = 0; let p2 = 0; (p1, p2) }
 
 #[cfg(test)]
 mod tests {

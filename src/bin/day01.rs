@@ -12,19 +12,17 @@ fn main() -> Result<()> {
 
 fn part_1_and_2(data: &str) -> (u64, u64) {
     let (xs, ys): (Vec<u64>, Vec<u64>) = parse_split_once::<u64>(data, "   ").unzip();
-    let sol = {
-        let p2 = xs.iter().fold(0, |acc, x| {
-            acc + (x * ys.iter().filter(|&y| y == x).count() as u64)
-        });
-        let p1 = xs
-            .into_iter()
-            .sorted()
-            .zip(ys.into_iter().sorted())
-            .fold(0, |acc, (x, y)| acc + (x).abs_diff(y));
-        (p1, p2)
-    };
 
-    sol
+    let p2 = xs.iter().fold(0, |acc, x| {
+        acc + (x * ys.iter().filter(|&y| y == x).count() as u64)
+    });
+    let p1 = xs
+        .into_iter()
+        .sorted()
+        .zip(ys.into_iter().sorted())
+        .fold(0, |acc, (x, y)| acc + (x).abs_diff(y));
+
+    (p1, p2)
 }
 
 #[cfg(test)]
