@@ -1,11 +1,11 @@
-use aoc_24::parse_split_once;
+use aoc_24::utils::parser::parse_split_once;
 use itertools::Itertools;
 
-const DATA: &'static str = include_str!("../../input/01.in");
+const DATA: &str = include_str!("../../input/01.in");
 
 fn main() {
     let now = std::time::Instant::now();
-    let (p1, p2) = part_1_and_2(&DATA);
+    let (p1, p2) = part_1_and_2(DATA);
     let elapsed = now.elapsed();
     println!("Part 1: {p1}");
     println!("Part 2: {p2}");

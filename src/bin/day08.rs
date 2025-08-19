@@ -1,10 +1,10 @@
 use hashbrown::{HashMap, HashSet};
 
-const DATA: &'static str = include_str!("../../input/08.in");
+const DATA: &str = include_str!("../../input/08.in");
 
 fn main() {
     let now = std::time::Instant::now();
-    let (p1, p2) = part_1_and_2(&DATA);
+    let (p1, p2) = part_1_and_2(DATA);
     let elapsed = now.elapsed();
     println!("Part 1: {p1:?}\nPart 2: {p2:?}\nTime: {elapsed:?}");
 }
