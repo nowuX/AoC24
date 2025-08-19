@@ -27,7 +27,7 @@ impl<T> LinkedList<T> {
         })
     }
 
-    pub fn match_gt<F>(&mut self, predicate: F) -> Option<T>
+    pub fn find<F>(&mut self, predicate: F) -> Option<T>
     where
         F: Fn(&T) -> bool,
     {

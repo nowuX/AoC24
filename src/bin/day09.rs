@@ -1,16 +1,17 @@
 use std::iter::repeat;
 
-use aoc_24::utils::collections::LinkedList;
-
 const DATA: &str = include_str!("../../input/09.in");
 
 fn main() {
     // let (p1, p2) = part_1_and_2(&DATA);
     let now = std::time::Instant::now();
     let p1 = part_1(DATA);
+    let elapsed = now.elapsed();
+    println!("Part 1: {p1:?}\nTime: {elapsed:?}");
+    let now = std::time::Instant::now();
     let p2 = part_2(DATA);
     let elapsed = now.elapsed();
-    println!("Part 1: {p1:?}\nPart 2: {p2:?}\nTime: {elapsed:?}");
+    println!("Part 2: {p2:?}\nTime: {elapsed:?}");
 }
 
 fn part_1(data: &str) -> usize {
@@ -51,11 +52,10 @@ fn part_1(data: &str) -> usize {
         .sum()
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 struct Block {
     size: usize,
     index: usize,
-    value: Option<usize>,
 }
 
 fn part_2(data: &str) -> usize {
@@ -73,15 +73,19 @@ fn part_2(data: &str) -> usize {
         files.extend(repeat(None).take(y as usize));
     }
 
-    let mut empty_list = collect_empty_blocks(&files);
-    let full_list = collect_full_blocks(&files);
-    for full_block in full_list {
-        if let Some(empty_block) = empty_list.match_gt(|s| s.size >= full_block.size) {
+    let mut empty_blocks = collect_empty_blocks(&files);
+    let full_blocks = collect_full_blocks(&files);
+
+    for full_block in full_blocks {
+        if let Some(empty_block_index) = find_empty_block_index(&empty_blocks, &full_block) {
+            let empty_block = &empty_blocks[empty_block_index];
+
             if empty_block.index < full_block.index {
                 for i in 0..full_block.size {
                     files.swap(empty_block.index + i, full_block.index + i);
                 }
-                empty_list = collect_empty_blocks(&files);
+
+                update_empty_blocks(&mut empty_blocks, empty_block_index, full_block.size)
             }
         }
     }
@@ -96,8 +100,29 @@ fn part_2(data: &str) -> usize {
         .sum()
 }
 
-fn collect_empty_blocks(files: &[Option<usize>]) -> LinkedList<Block> {
-    let mut empty_list = LinkedList::new();
+fn find_empty_block_index(empty_blocks: &[Block], full_block: &Block) -> Option<usize> {
+    empty_blocks
+        .iter()
+        .position(|empty_block| empty_block.size >= full_block.size)
+}
+
+fn update_empty_blocks(
+    empty_blocks: &mut Vec<Block>,
+    empty_block_idx: usize,
+    full_block_size: usize,
+) {
+    let remaining_size = empty_blocks[empty_block_idx].size - full_block_size;
+
+    if remaining_size == 0 {
+        empty_blocks.remove(empty_block_idx);
+    } else {
+        empty_blocks[empty_block_idx].size = remaining_size;
+        empty_blocks[empty_block_idx].index += full_block_size;
+    }
+}
+
+fn collect_empty_blocks(files: &[Option<usize>]) -> Vec<Block> {
+    let mut empty_list = Vec::new();
     let mut current_buffer = None;
 
     for (i, file) in files.iter().enumerate() {
@@ -107,10 +132,9 @@ fn collect_empty_blocks(files: &[Option<usize>]) -> LinkedList<Block> {
             }
             (None, Some((_, size))) => *size += 1,
             (Some(_), Some((start_index, size))) => {
-                empty_list.push_front(Block {
+                empty_list.push(Block {
                     size: *size,
                     index: *start_index,
-                    value: None,
                 });
                 current_buffer = None;
             }
@@ -119,52 +143,47 @@ fn collect_empty_blocks(files: &[Option<usize>]) -> LinkedList<Block> {
     }
 
     if let Some((start_index, size)) = current_buffer {
-        empty_list.push_front(Block {
+        empty_list.push(Block {
             size,
             index: start_index,
-            value: None,
         });
     }
-    empty_list.reverse();
     empty_list
 }
 
 fn collect_full_blocks(files: &[Option<usize>]) -> Vec<Block> {
-    let mut full_list = vec![];
+    let mut full_list = Vec::new();
     let mut current_buffer = None;
 
     for (i, file) in files.iter().enumerate() {
         match (file, &mut current_buffer) {
             (None, None) => {}
-            (None, Some((start_index, size, value))) => {
+            (None, Some((start_index, size, _))) => {
                 full_list.push(Block {
                     size: *size,
                     index: *start_index,
-                    value: Some(*value),
                 });
                 current_buffer = None;
             }
-            (Some(value), Some(buffer)) => {
-                if *value == buffer.2 {
-                    buffer.1 += 1
+            (Some(next_value), Some((start_index, size, value))) => {
+                if next_value == value {
+                    *size += 1
                 } else {
                     full_list.push(Block {
-                        size: buffer.1,
-                        index: buffer.0,
-                        value: Some(buffer.2),
+                        size: *size,
+                        index: *start_index,
                     });
-                    current_buffer = Some((i, 1, *value))
+                    current_buffer = Some((i, 1, *next_value))
                 }
             }
             (Some(value), None) => current_buffer = Some((i, 1, *value)),
         }
     }
 
-    if let Some((start_index, size, value)) = current_buffer {
+    if let Some((start_index, size, _)) = current_buffer {
         full_list.push(Block {
             size,
             index: start_index,
-            value: Some(value),
         });
     }
     full_list.reverse();
