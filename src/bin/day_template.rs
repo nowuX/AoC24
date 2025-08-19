@@ -1,5 +1,3 @@
-#![expect(unused)]
-
 const DATA: &str = include_str!("../../input/01.in");
 
 fn main() {
@@ -11,10 +9,12 @@ fn main() {
     println!("Part 1: {p1:?}\nPart 2: {p2:?}\nTime: {elapsed:?}");
 }
 
+#[expect(unused)]
 fn part_1(data: &str) -> usize {
     0
 }
 
+#[expect(unused)]
 fn part_2(data: &str) -> usize {
     0
 }

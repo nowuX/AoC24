@@ -1,4 +1,4 @@
-use aoc_24::parse_split_once;
+use aoc_24::utils::parser::parse_split_once;
 use itertools::Itertools;
 
 const DATA: &str = include_str!("../../input/01.in");
