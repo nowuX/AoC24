@@ -1,4 +1,5 @@
 use aoc_24::utils::parser::parse_split_once;
+use hashbrown::HashMap;
 use itertools::Itertools;
 
 const DATA: &str = include_str!("../../input/01.in");
@@ -15,9 +16,14 @@ fn main() {
 fn part_1_and_2(data: &str) -> (u64, u64) {
     let (xs, ys): (Vec<u64>, Vec<u64>) = parse_split_once::<u64>(data, "   ").unzip();
 
-    let p2 = xs.iter().fold(0, |acc, x| {
-        acc + (x * ys.iter().filter(|&y| y == x).count() as u64)
+    let freq: HashMap<u64, u64> = ys.iter().fold(HashMap::new(), |mut map, &y| {
+        *map.entry(y).or_insert(0) += 1;
+        map
     });
+
+    let p2 = xs
+        .iter()
+        .fold(0, |acc, &x| acc + x * freq.get(&x).unwrap_or(&0));
 
     let p1 = xs
         .into_iter()
