@@ -33,25 +33,41 @@ fn part_1_and_2(data: &str) -> (usize, usize) {
         files.extend(repeat(None).take(y as usize));
     }
 
-    let mut files_p1 = files.clone();
-    let mut free_index = files_p1.iter().position(|f| f.is_none()).unwrap();
-    let mut last_index = files_p1.iter().rposition(|f| f.is_some()).unwrap();
-    while free_index != last_index + 1 {
-        files_p1.swap(free_index, last_index);
+    let p1 = part_1(files.clone());
+    let p2 = part_2(files);
 
-        while files_p1[free_index].is_some() {
+    (p1, p2)
+}
+
+fn part_1(mut files: Vec<Option<usize>>) -> usize {
+    let mut free_index = files.iter().position(|f| f.is_none()).unwrap();
+    let mut last_index = files.iter().rposition(|f| f.is_some()).unwrap();
+    while free_index != last_index + 1 {
+        files.swap(free_index, last_index);
+
+        while files[free_index].is_some() {
             free_index += 1;
         }
 
-        while files_p1[last_index].is_none() {
+        while files[last_index].is_none() {
             last_index -= 1;
         }
     }
 
+    files
+        .iter()
+        .enumerate()
+        .fold(0, |acc, (i, v)| acc + i * v.unwrap_or(0))
+}
+
+fn part_2(mut files: Vec<Option<usize>>) -> usize {
     let (mut empty_blocks, full_blocks) = collect_blocks(&files);
 
     for full_block in full_blocks {
-        if let Some(empty_block_index) = find_empty_block_index(&empty_blocks, &full_block) {
+        if let Some(empty_block_index) = empty_blocks
+            .iter()
+            .position(|empty_block| empty_block.size >= full_block.size)
+        {
             let empty_block = &empty_blocks[empty_block_index];
 
             if empty_block.index < full_block.index {
@@ -59,100 +75,55 @@ fn part_1_and_2(data: &str) -> (usize, usize) {
                     files.swap(empty_block.index + i, full_block.index + i);
                 }
 
-                update_empty_blocks(&mut empty_blocks, empty_block_index, full_block.size)
+                let remaining_size = empty_blocks[empty_block_index].size - full_block.size;
+
+                if remaining_size == 0 {
+                    empty_blocks.remove(empty_block_index);
+                } else {
+                    empty_blocks[empty_block_index].size = remaining_size;
+                    empty_blocks[empty_block_index].index += full_block.size;
+                }
             }
         }
     }
 
-    let p1 = files_p1
-        .iter()
-        .flatten()
-        .enumerate()
-        .map(|(i, &v)| i * v)
-        .sum();
-    let p2 = files
+    files
         .iter()
         .enumerate()
-        .map(|(i, v)| match v {
-            Some(v) => i * v,
-            None => 0,
-        })
-        .sum();
-
-    (p1, p2)
+        .fold(0, |acc, (i, v)| acc + i * v.unwrap_or(0))
 }
 
-fn find_empty_block_index(empty_blocks: &[Block], full_block: &Block) -> Option<usize> {
-    empty_blocks
-        .iter()
-        .position(|empty_block| empty_block.size >= full_block.size)
-}
-
-fn update_empty_blocks(
-    empty_blocks: &mut Vec<Block>,
-    empty_block_idx: usize,
-    full_block_size: usize,
-) {
-    let remaining_size = empty_blocks[empty_block_idx].size - full_block_size;
-
-    if remaining_size == 0 {
-        empty_blocks.remove(empty_block_idx);
-    } else {
-        empty_blocks[empty_block_idx].size = remaining_size;
-        empty_blocks[empty_block_idx].index += full_block_size;
-    }
-}
-
-// TODO instead of element to element jump index for large blocks
 fn collect_blocks(files: &[Option<usize>]) -> (Vec<Block>, Vec<Block>) {
     let mut empty_blocks = Vec::new();
     let mut full_blocks = Vec::new();
 
-    let mut empty_buffer: Option<(usize, usize)> = None;
-    let mut full_buffer: Option<(usize, usize, usize)> = None;
-
-    for (i, file) in files.iter().enumerate() {
-        match file {
+    let mut i = 0;
+    while i < files.len() {
+        match files[i] {
             Some(value) => {
-                if let Some((start, size)) = empty_buffer.take() {
-                    empty_blocks.push(Block {
-                        size: size,
-                        index: start,
-                    });
+                let start = i;
+                while i < files.len() && files[i] == Some(value) {
+                    i += 1;
                 }
-
-                full_buffer = Some(match full_buffer {
-                    None => (i, 1, *value),
-                    Some((start, size, prev_value)) if prev_value == *value => {
-                        (start, size + 1, *value)
-                    }
-                    Some((start, size, _)) => {
-                        full_blocks.push(Block { size, index: start });
-                        (i, 1, *value)
-                    }
+                full_blocks.push(Block {
+                    size: i - start,
+                    index: start,
                 });
             }
             None => {
-                if let Some((start, size, _)) = full_buffer.take() {
-                    full_blocks.push(Block { size, index: start });
+                let start = i;
+                while i < files.len() && files[i].is_none() {
+                    i += 1;
                 }
-
-                empty_buffer = Some(match empty_buffer {
-                    None => (i, 1),
-                    Some((start, size)) => (start, size + 1),
+                empty_blocks.push(Block {
+                    size: i - start,
+                    index: start,
                 });
             }
         }
     }
-
-    if let Some((start, size)) = empty_buffer {
-        empty_blocks.push(Block { size, index: start });
-    }
-    if let Some((start, size, _)) = full_buffer {
-        full_blocks.push(Block { size, index: start });
-    }
-
     full_blocks.reverse();
+
     (empty_blocks, full_blocks)
 }
 
